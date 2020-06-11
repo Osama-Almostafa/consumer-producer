@@ -22,7 +22,17 @@ public class ThreadExample {
             @Override
             public void run() {
                 try {
-                    pc.consume();
+                    pc.consumeDB();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        Thread t3 = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    pc.consumeGUI();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -32,9 +42,11 @@ public class ThreadExample {
         // Start both threads
         t1.start();
         t2.start();
+        t3.start();
 
         // t1 finishes before t2
         t1.join();
         t2.join();
+        t3.join();
     }
 }

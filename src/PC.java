@@ -3,11 +3,12 @@ import java.util.LinkedList;
 // This class has a list, producer (adds items to list
 // and consumber (removes items).
 public class PC {
-    SerialportConnector serialportConnector;
+    private SerialportConnector serialportConnector = new SerialportConnector(0);
     // Create a list shared by producer and consumer
     // Size of list is 2.
-    LinkedList<Integer> list = new LinkedList<>();
-    int capacity = 1000;
+    LinkedList<Integer> listGUI = new LinkedList<>();
+    LinkedList<Integer> listDB = new LinkedList<>();
+    int capacity = 100;
 
     // Function called by producer thread
     public void produce() throws InterruptedException {
@@ -16,50 +17,81 @@ public class PC {
             synchronized (this) {
                 // producer thread waits while list
                 // is full
-                while (list.size() == capacity)
+                while (listGUI.size() == capacity && listDB.size() == capacity)
                     wait();
                 int[] value = serialportConnector.getData();
-                System.out.println("Producer produced-"
-                        + value);
-
                 // to insert the jobs in the list
-                list.add(value[0]);
-                list.add(value[1]);
-
+                if(value!=null) {
+                    for (int i : value) {
+                        listGUI.add(i);
+                        listDB.add(i);
+                        System.out.println("Producer produced- "
+                                + i);
+                    }
+                }
                 // notifies the consumer thread that
                 // now it can start consuming
                 notify();
 
                 // makes the working of program easier
                 // to understand
-                Thread.sleep(1000);
             }
+            Thread.sleep(10);
         }
     }
 
     // Function called by consumer thread
-    public void consume() throws InterruptedException {
+    public void consumeGUI() throws InterruptedException {
         while (true) {
+            LinkedList<Integer> guiConsumedList;
             synchronized (this) {
                 // consumer thread waits while list
                 // is empty
-                while (list.size() < 50)
+                while (listGUI.size() < 50)
                     wait();
 
                 // to retrive the ifrst job in the list
-                LinkedList<Integer> removedObjket = new LinkedList<>();
-                list.removeAll(removedObjket);
-
-                System.out.println("Consumer consumed-");
+                //listGUI.removeAll(guiConsumedList);
+                guiConsumedList = listGUI;
+                listGUI = new LinkedList<>();
 
                 // Wake up producer thread
                 notify();
 
                 // and sleep
-                Thread.sleep(1000);
             }
+            //System.out.println("Consumer GUIconsumed-");
+            for (Integer i : guiConsumedList) {
+                System.out.println("GUInummer " + i);
+            }
+            Thread.sleep(10);
+        }
+    }
+
+    public void consumeDB() throws InterruptedException {
+        while (true) {
+            LinkedList<Integer> dbConsumedList;
+            synchronized (this) {
+                // consumer thread waits while list
+                // is empty
+                while (listDB.size() < 50)
+                    wait();
+
+                // to retrive the ifrst job in the list
+                //listGUI.removeAll(dbConsumedList);
+                dbConsumedList = listDB;
+                listDB = new LinkedList<>();
+
+                // Wake up producer thread
+                notify();
+
+                // and sleep
+            }
+            //System.out.println("Consumer DBconsumed-");
+            for (Integer i : dbConsumedList) {
+                System.out.println("DBNummer " + i);
+            }
+            Thread.sleep(10);
         }
     }
 }
-
-
